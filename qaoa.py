@@ -40,18 +40,22 @@ def Qiskit_QAOA(beta, gamma, V, E):
     # apply the layer of Hadamard gates to all qubits
     QAOA.h(range(len(V)))
     QAOA.barrier()
-    # apply the Ising type gates with angle gamma along the edges in E
-    for edge in E:
-        k = edge[0]
-        l = edge[1]
-        QAOA.cu1(-2*gamma, k, l)
-        QAOA.u1(gamma, k)
-        QAOA.u1(gamma, l)
-    # then apply the single qubit X - rotations with angle beta to all qubits
-    QAOA.barrier()
-    QAOA.rx(2*beta, range(len(V)))
-    # Finally measure the result in the computational basis
-    QAOA.barrier()
+    
+    for a in range(p):
+        # apply the Ising type gates with angle gamma along the edges in E
+        for edge in E:
+            k = edge[0]
+            l = edge[1]
+            w = gamma[a]*G[k][l]['weight']
+            QAOA.cu1(-2*w, k, l)
+            QAOA.u1(w, k)
+            QAOA.u1(w, l)
+        # then apply the single qubit X - rotations with angle beta to all qubits
+        QAOA.barrier()
+        QAOA.rx(2*beta[a], range(len(V)))
+        # Finally measure the result in the computational basis
+        QAOA.barrier()
+    
     QAOA.measure(range(len(V)),range(len(V)))
     ### draw the circuit for comparison
     #QAOA.draw(output='mpl')
@@ -63,12 +67,10 @@ def Qiskit_QAOA(beta, gamma, V, E):
     counts = QAOA_results.get_counts()
     return counts
 
-Nfeval = 1
-
 def optim(params):
     global Nfeval, cost, history
     
-    beta, gamma = params[0], params[1]
+    beta, gamma = params[:p], params[p:]
     counts = Qiskit_QAOA(beta, gamma, V, E)
     avr_C       = 0
     for sample in list(counts.keys()):
@@ -78,18 +80,21 @@ def optim(params):
         # compute the expectation value and energy distribution
         avr_C     = avr_C    + counts[sample]*tmp_eng
     M1_sampled   = avr_C/shots
-    
-    print('{0:4d}, {1:3.3f}, {2:3.3f}, {3:3.3f}'.format(Nfeval, beta, gamma, -M1_sampled))
+    if Nfeval % 10 == 0:
+        print ("Nfeval: ", Nfeval)
+        #print('{0:4d}, {1:3.3f}, {2:3.3f}, {3:3.3f}'.format(Nfeval, beta, gamma, -M1_sampled))
     history = np.vstack((history, params))
     cost.append(-M1_sampled)
     Nfeval += 1
     return -M1_sampled
 
-"""
+def rand_params(x, bnds, size):
+    return np.round( np.random.uniform(low=-bnds[x], high=bnds[x], size = size), 3 )
+
 # Generating the butterfly graph with 5 nodes 
 n     = 5
 V     = np.arange(0,n,1)
-E     =[(0,1,1.0),(0,2,1.0),(1,2,1.0),(3,2,1.0),(3,4,1.0),(4,2,1.0)] 
+E     =[(0,1,1.0),(0,2,3.0),(1,2,3.0),(3,1,3.0),(3,4,2.0),(4,2,2.0)] 
 """
 #Create graph from adjacency matrix
 dist = np.loadtxt('3_dist.csv', delimiter=',')
@@ -99,64 +104,79 @@ E = []
 for j in range(n):
     for k in range(1, n-j):
         E.append((j, j+k, dist[j, j+k]))
-
+"""
 G     = nx.Graph()
 G.add_nodes_from(V)
 G.add_weighted_edges_from(E)
+
 """
 # Generate plot of the Graph
 colors       = ['r' for node in G.nodes()]
 default_axes = plt.axes(frameon=True)
 pos          = nx.spring_layout(G)
-
 nx.draw_networkx(G, node_color=colors, node_size=600, alpha=1, ax=default_axes, pos=pos)
 """
-#Random initial parameters
-rand_beta = np.random.uniform(low=-0.25*np.pi, high=0.25*np.pi)
-rand_beta = np.round(rand_beta, 3)
-rand_gamma = np.random.uniform(low=-0.50*np.pi, high=0.50*np.pi)
-rand_gamma = np.round(rand_gamma, 3)
 
-init_params = [rand_beta, rand_gamma]
-history = np.array(init_params)
-cost = []
-print('{0:4s}, {1:9s}, {2:9s}, {3:9s}'.format('Iter', 'Beta', 'Gamma', 'Cost'))
+p=10
 
-bnds = ((-0.25*np.pi, 0.25*np.pi), (-.50*np.pi, 0.50*np.pi))
-backend      = Aer.get_backend("qasm_simulator")
-shots        = 10000
+#Construct boundaries as constraints
+bnds = {'beta': 0.25*np.pi, 'gamma': 0.50*np.pi}
+bounds = [ [ -bnds['beta'], bnds['beta'] ], 
+           [ -bnds['gamma'], bnds['gamma'] ] ]
+cons = []
+for factor in range(len(bounds)):
+    lower, upper = bounds[factor]
+    l = {'type': 'ineq',
+         'fun': lambda x, lb=lower, i=factor: x[i] - lb}
+    u = {'type': 'ineq',
+         'fun': lambda x, ub=upper, i=factor: ub - x[i]}
+    for ii in range(p):
+        cons.append(l)
+        cons.append(u)
+
+Itertion = 20
+H = np.zeros(Itertion)
+for ii in range(Itertion):
+    print(ii)
+    #Random initial parameters
+    init_params = rand_params('beta', bnds, p)
+    init_params = list(np.concatenate((init_params, rand_params('gamma', bnds, p))))
+    history = np.array(init_params)
+    cost = []
+    #print('{0:4s}, {1:9s}, {2:9s}, {3:9s}'.format('Iter', 'Beta', 'Gamma', 'Cost'))
+    
+    #Optimize cost function
+    Nfeval = 1
+    backend      = Aer.get_backend("qasm_simulator")
+    shots        = 100
+    res = optimize.minimize(optim, init_params, method='COBYLA', constraints=cons, options={'disp': True})
+    if res.success:
+        best_params = {'beta': res.x[0], 'gamma': res.x[1]}
+    else:
+        raise ValueError(res.message)
+    """
+    for line in range(p):
+        plt.plot(range(len(history[:, line])), history[:,line], color='r')
+    for line in range(p, 2*p):
+        plt.plot(range(len(history[:, line])), history[:, line], color='b')
+        """
+    H[ii] = res.fun
 
 
-res = optimize.minimize(optim, init_params, 
-                        method='Nelder-Mead',
-                        bounds=bnds, 
-                        options={'disp': True, 'xatol':1e-1, 'fatol':1.0})
 """
-res = optimize.minimize(optim, init_params, 
-                        method='SLSQP',
-                        options={'disp': True, 'eps': 1e-03, 'ftol':1e-01}, 
-                        bounds=bnds)
-"""
-
-if res.success:
-    best_params = res.x
-else:
-    raise ValueError(res.message)
-
-best_beta, best_gamma = best_params[0], best_params[1]
-shots = 10000
-result = Qiskit_QAOA(best_beta, best_gamma, V, E)
-
-#plot_histogram(result,figsize = (8,6),bar_labels = False, title='Prob_distribution of the final state.')
+#Get optimal solution
+shots = 100
+result = Qiskit_QAOA(best_params['beta'], best_params['gamma'], V, E)
+plot_histogram(result,figsize = (8,6),bar_labels = False, title='Prob_distribution of the final state.')
 
 avr_C       = 0
 max_C       = [0,0]
 hist        = {}
 for k in range(len(G.edges())+1):
     hist[str(k)] = hist.get(str(k),0)
-
+    
 for sample in list(result.keys()):
-
+    
     # use sampled bit string x to compute C(x)
     x         = [int(num) for num in list(sample)]
     tmp_eng   = cost_function_C(x,G)
@@ -173,10 +193,14 @@ for sample in list(result.keys()):
 M1_sampled   = avr_C/shots
 
 print('\n --- SIMULATION RESULTS ---\n')
-print('The approximate solution is x* = %s with C(x*) = %d \n' % (max_C[0],max_C[1]))
+print(res)
+#print('The approximate solution is x* = %s with C(x*) = %d \n' % (max_C[0],max_C[1]))
 #plot_histogram(hist,figsize = (8,6),bar_labels = False, title='Distribution of the cost function')
 
 plt.figure()
+par = {0:"Beta", 1:"Gamma"}
 for var in range(2):
-    plt.plot(range(len(history[1:,var])), history[1:,var])
-
+    plt.plot(range(len(history[1:,var])), history[1:,var], label=par[var])
+    plt.legend()
+    plt.xlabel('Itertion')
+    """
