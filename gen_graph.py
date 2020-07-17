@@ -18,9 +18,10 @@ def ran_weight(weight):
     else:
         return 1.0
 
-def make_clus(n_sizes, n_clusters):
-    pos, cluster    = make_blobs(n_samples=n_sizes, centers=[(-3.0, 0.0), (3.0 , 0.0)])
-    plt.scatter(pos[:, 0], pos[:, 1])
+def make_clus(n_sizes, std):
+    pos, cluster    = make_blobs(n_samples=n_sizes, centers=[(-4.0, 0.0), (4.0 , 0.0)], 
+                                 cluster_std=std)
+    #plt.scatter(pos[:, 0], pos[:, 1])
     return pos, cluster
 
 def gen_graph(n_node, filename, weight=False):
@@ -44,10 +45,22 @@ def gen_graph(n_node, filename, weight=False):
     """
     #np.savetxt(filename, dist, delimiter=',', fmt='%.3f')
 
-
+#fig = plt.figure()
 #gen_graph(n_node=7, filename='dist.csv', weight=False)
-data, ans = make_clus(20, 2)
-dist = np.round(dst.squareform(dst.pdist(data)), 3)
-np.savetxt('1_pos_data.csv', data, delimiter=',', fmt='%.3f')
-np.savetxt('2_clus_number.csv', ans, delimiter=',', fmt='%.3f')
-np.savetxt('3_dist.csv', dist, delimiter=',', fmt='%.3f')
+var = [1.00]
+size = np.arange(6, 12, 1)
+for v in var:
+    for n in size:
+        GRAPH = []
+        for ii in range(1):
+            data, ans = make_clus(n, v)
+            data = np.round(data, 3)
+            dist = np.round(dst.squareform(dst.pdist(data)), 3)
+            GRAPH.append({"data": data, "ans": ans, "dist": dist})
+        np.save("./QAOA_Data/var"+str(v)+"/"+str(n)+"nodes", GRAPH)
+
+#np.savetxt('1_pos_data.csv', data, delimiter=',', fmt='%.3f')
+#np.savetxt('2_clus_number.csv', ans, delimiter=',', fmt='%.3f')
+#np.savetxt('3_dist.csv', dist, delimiter=',', fmt='%.3f')
+
+#plt.scatter(data[:,0], data[:,1])
