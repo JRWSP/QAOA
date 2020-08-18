@@ -21,7 +21,7 @@ max_uC = {6: 9.0,
          8: 16.0, 
          10: 25.0, 
          12: 36.0}
-
+"""
 n = 10
 mean = -np.mean(uC["nodes"+str(n)], axis=1)/(max_uC[n])
 upp_err = [-np.min(a)/max_uC[n] for a in uC['nodes'+str(n)]]
@@ -29,8 +29,22 @@ upp_err = 100*(upp_err - mean)
 low_err = [-np.max(a)/max_uC[n] for a in uC['nodes'+str(n)]]
 low_err = 100*(mean - low_err)
 plt.errorbar(range(1, 11), 100*mean, yerr=[low_err, upp_err], color="C0", fmt='o')
-
-n=10
+"""
+n=6
+mean = np.array([])
+std = np.array([])
+for p in range(1, 11):
+    temp = np.array([])
+    filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_specific_initiial"
+    data_temp = np.load(filename+".npy", allow_pickle=True)
+    temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
+    mean_temp = np.min(temp)
+    std_temp = np.std(temp)
+    
+    mean = np.append(mean, mean_temp/(-52.419))
+    std = np.append(std, std_temp/(-52.419))
+    
+    """
 wC_mean = -np.mean(wC["nodes"+str(n)], axis=1)/(max_wC[n])
 upp_err = [-np.min(a)/max_wC[n] for a in wC['nodes'+str(n)]]
 upp_err = 100*(upp_err - wC_mean)
@@ -41,3 +55,4 @@ plt.ylabel("r (%)")
 plt.xlabel("p")
 plt.legend()
 plt.xticks(np.arange(1, 11))
+"""
