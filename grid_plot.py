@@ -31,12 +31,13 @@ plt.hist(hist_gaus)
 plt.xlabel(r"Euclidian weight (N=6, $\sigma$ = 3.0)")
 #plt.savefig("2_1")
 """
-grid6 = np.load("./grid/grid6nodes_p1statevector.npy", allow_pickle=True)
-grid10 = np.load("./grid/grid10nodes_p1statevector.npy", allow_pickle=True)
-
+#grid6 = np.load("./grid/grid6nodes_p1statevector.npy", allow_pickle=True)
+#grid10 = np.load("./grid/grid10nodes_p1statevector.npy", allow_pickle=True)
+sample = 3
+grid6 = np.load("./grid/Grid6Sample"+str(sample)+"statevector.npy", allow_pickle=True)
 
 val = []
-for ii in grid10:
+for ii in grid6:
     ii = list(ii.values())
     #beta.append(ii[0])
     #gamma.append(ii[1])
@@ -45,16 +46,15 @@ for ii in grid10:
 
 val2 = np.array(val)
 val2 = val2.reshape(100, 200)
-val2 = -1*val2/132.297
+val2 = -1*val2
 val2 = np.around(val2, 3)
 
 plt.figure(figsize=(10,6))
 plt.contourf(val2)
 plt.xticks([0, 50, 100, 150, 200], [r"$-1.0\pi$", r"$-0.5\pi$", r"$0$", r"$0.5\pi$", r"$1.0\pi$"])
 plt.xlabel(r"$\gamma$")
-plt.yticks([0, 25, 50, 75, 100], [r"$-0.5\pi$", r"$-0.25\pi$", r"$0$", r"$0.25\pi$", r"$0.5\pi$"])
+plt.yticks([0, 25, 50, 75, 100], [r"$0$", r"$0.125\pi$", r"$0.250\pi$", r"$0.375\pi$", r"$0.500\pi$"])
 plt.ylabel(r"$\beta$")
 plt.colorbar()
 plt.title("N = 10")
-plt.savefig("grid10", dpi=300)
-
+#plt.savefig("grid10", dpi=300)
