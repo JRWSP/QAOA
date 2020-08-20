@@ -33,8 +33,8 @@ plt.xlabel(r"Euclidian weight (N=6, $\sigma$ = 3.0)")
 """
 #grid6 = np.load("./grid/grid6nodes_p1statevector.npy", allow_pickle=True)
 #grid10 = np.load("./grid/grid10nodes_p1statevector.npy", allow_pickle=True)
-sample = 3
-grid6 = np.load("./grid/Grid6Sample"+str(sample)+"statevector.npy", allow_pickle=True)
+sample = 0
+grid6 = np.load("./grid/Grid6Sample"+str(sample)+"Statevector_Unweight.npy", allow_pickle=True)
 
 val = []
 for ii in grid6:
@@ -56,5 +56,5 @@ plt.xlabel(r"$\gamma$")
 plt.yticks([0, 25, 50, 75, 100], [r"$0$", r"$0.125\pi$", r"$0.250\pi$", r"$0.375\pi$", r"$0.500\pi$"])
 plt.ylabel(r"$\beta$")
 plt.colorbar()
-plt.title("N = 10")
-#plt.savefig("grid10", dpi=300)
+plt.title("N = 6")
+plt.savefig("grid6_unweight"+str(sample), dpi=300)
