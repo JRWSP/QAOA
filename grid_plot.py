@@ -16,7 +16,9 @@ plt.rcParams.update({'font.size': 15})
 #grid6 = np.load("./grid/grid6nodes_p1statevector.npy", allow_pickle=True)
 #grid10 = np.load("./grid/grid10nodes_p1statevector.npy", allow_pickle=True)
 sample = 0
-grid6 = np.load("./grid/Grid6Sample"+str(sample)+"statevector.npy", allow_pickle=True)
+
+grid6 = np.load("./grid/Grid6Sample"+str(sample)+"Statevector_Unweight.npy", allow_pickle=True)
+
 
 val = []
 for ii in grid6:
@@ -46,5 +48,7 @@ plt.yticks([0, 25, 50, 75, 100], [r"$0$", r"$0.125\pi$", r"$0.250\pi$", r"$0.375
 plt.ylabel(r"$\beta$")
 plt.colorbar()
 plt.title("N = 6")
-#plt.savefig("grid10", dpi=300)
+
+plt.savefig("grid6_unweight"+str(sample), dpi=300)
+
 """

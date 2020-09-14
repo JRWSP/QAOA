@@ -102,10 +102,11 @@ def optim(params):
 if __name__ == "__main__":
     #Create graph from adjacency matrix
     n = 6
-    #for n in tqdm([6]):
-    for samp in tqdm(range(5)):
+    for n in tqdm([6]):
+    #for samp in tqdm(range(1)):
         data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
-        dist = data[samp]['dist']
+        #data = np.load('./uC/uC6nodes.npy', allow_pickle=True)
+        dist = data[0]['dist']
         
         G = nx.from_numpy_matrix(dist)
         n = len(G.nodes())
@@ -113,9 +114,11 @@ if __name__ == "__main__":
         E = []
         for e in G.edges():
             E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
-        
-        p=1
-        
+            #E.append((e[0], e[1], 1.0))
+            
+        p=2
+        beta1 = 0.460
+        gamma1 = -0.053
         #Prepare Qiskit framework
         backend     = Aer.get_backend("statevector_simulator")
         #Sinigle core calculation
@@ -125,7 +128,7 @@ if __name__ == "__main__":
             print("\n n"+str(n)+"beta"+str(bbeta))
             for ggamma in np.linspace(-1.0*np.pi, 1.0*np.pi, 200):
                 ggamma = np.round(ggamma, 3)
-                init_params = list(np.concatenate(( [bbeta] , [ggamma])))
+                init_params = list(np.concatenate(( [beta1, bbeta] , [gamma1, ggamma])))
                 state = Qiskit_QAOA( init_params[:p], init_params[p:], V, E)
                 
                 avr_C       = 0
@@ -139,6 +142,6 @@ if __name__ == "__main__":
                 temp_res = {"beta": bbeta,"gamma": ggamma, "cost": np.round(M1_sampled, 3)}
                 Result.append(temp_res)
                 
-        filename = "./grid/Grid"+str(n)+"Sample" +str(samp) +"Statevector"
+        filename = "./grid/Grid"+str(n)+"p2_Statevector"
         np.save(filename, Result, allow_pickle=True)
             
