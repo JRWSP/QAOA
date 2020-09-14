@@ -13,28 +13,12 @@ plt.rcParams["font.family"] = "serif"
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams.update({'font.size': 15})
 
-"""
-graph = np.load("./wc/10nodes_10samples.npy", allow_pickle=True)
-dist = graph[0]['dist']
-hist_dist = []
-for row in range(len(dist)):
-    for column in range(row):
-        hist_dist.append(dist[row][column])
-        
-hist_dist = np.array(hist_dist)
-#plt.hist(hist_dist)
-
-sigma = 3.0
-hist_gaus = np.e**(1.0*(hist_dist**2)/(2.0* sigma**2))
-plt.hist(hist_gaus)
-
-plt.xlabel(r"Euclidian weight (N=6, $\sigma$ = 3.0)")
-#plt.savefig("2_1")
-"""
 #grid6 = np.load("./grid/grid6nodes_p1statevector.npy", allow_pickle=True)
 #grid10 = np.load("./grid/grid10nodes_p1statevector.npy", allow_pickle=True)
 sample = 0
+
 grid6 = np.load("./grid/Grid6Sample"+str(sample)+"Statevector_Unweight.npy", allow_pickle=True)
+
 
 val = []
 for ii in grid6:
@@ -45,16 +29,26 @@ for ii in grid6:
 
 
 val2 = np.array(val)
-val2 = val2.reshape(100, 200)
+val2 = val2.reshape(100, 1000)
 val2 = -1*val2
-val2 = np.around(val2, 3)
+val2 = np.around(val2, 3)/52.419
 
+Slice = 25
+mean = np.mean(val2[Slice])
+signal = val2[Slice] - mean
+fourier = np.fft.fft(signal)
+plt.plot(range(len(fourier)), fourier)
+
+"""
 plt.figure(figsize=(10,6))
 plt.contourf(val2)
-plt.xticks([0, 50, 100, 150, 200], [r"$-1.0\pi$", r"$-0.5\pi$", r"$0$", r"$0.5\pi$", r"$1.0\pi$"])
+plt.xticks([0, 250, 500, 750, 1000], [r"$-1.0\pi$", r"$-0.5\pi$", r"$0$", r"$0.5\pi$", r"$1.0\pi$"])
 plt.xlabel(r"$\gamma$")
 plt.yticks([0, 25, 50, 75, 100], [r"$0$", r"$0.125\pi$", r"$0.250\pi$", r"$0.375\pi$", r"$0.500\pi$"])
 plt.ylabel(r"$\beta$")
 plt.colorbar()
 plt.title("N = 6")
+
 plt.savefig("grid6_unweight"+str(sample), dpi=300)
+
+"""
