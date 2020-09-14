@@ -84,7 +84,7 @@ def Qiskit_QAOA(beta, gamma, V, E):
 
 def rand_params(x, bnds, size):
     local_rand = np.random.RandomState(None)
-    return np.round( local_rand.uniform(low=-bnds[x], high=bnds[x], size = size), 3 )
+    return np.round( local_rand.uniform(low=bnds[x][0], high=bnds[x][1], size = size), 3 )
 
 
 def optim(params):
@@ -123,21 +123,11 @@ if __name__ == "__main__":
             
             n_cores = 24
             Iters = 24
-            for p in range(1,11):
+            for p in range(1,2):
                 #Construct boundaries as constraints
-                bnds = {'beta': 0.25*np.pi, 'gamma': 0.25*np.pi}
-                bounds = [ [ -bnds['beta'], bnds['beta'] ], 
-                           [ -bnds['gamma'], bnds['gamma'] ] ]
-                cons = []
-                for factor in range(len(bounds)):
-                    lower, upper = bounds[factor]
-                    l = {'type': 'ineq',
-                         'fun': lambda x, lb=lower, i=factor: x[i] - lb}
-                    u = {'type': 'ineq',
-                         'fun': lambda x, ub=upper, i=factor: ub - x[i]}
-                    for ii in range(p):
-                        cons.append(l)
-                        cons.append(u)
+                bnds = {'beta': (0, 0.50*np.pi), 'gamma': (-1.0*np.pi, 1.0*np.pi)}
+                bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
+                
     
                 backend      = Aer.get_backend("qasm_simulator")
                 shots        = 2**(n+2)
@@ -150,7 +140,7 @@ if __name__ == "__main__":
                     init_params = list(np.concatenate(( rand_params('beta', bnds, p) , rand_params('gamma', bnds, p))))
                     if x%4 ==0:
                         print("\n sigma = "+str(sigma)+" n = " + str(n) + "p = " + str(p) + " Iteration " + str(x) + "/" + str(Iters-1) )
-                    res = optimize.minimize(optim, init_params, method='Powell', tol=1e-2)
+                    res = optimize.minimize(optim, init_params, method='Powell', bounds=bounds, options={'xtol':1e-3, 'ftol':1e-3})
                     if res.success:
                         return (res, history)
                     else:
@@ -161,4 +151,4 @@ if __name__ == "__main__":
                 Result.append(Sub_sample)
                 #filename = "./QAOA_Data/var2.0/p" +str(p) +"shots" +str(shots)
                 filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_specific_initiial"
-                np.save(filename, Result, allow_pickle=True)
+                #np.save(filename, Result, allow_pickle=True)
