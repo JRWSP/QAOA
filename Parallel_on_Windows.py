@@ -52,7 +52,7 @@ if __name__ == "__main__":
     n = 6
 
     n_cores = 24
-    Iters = 240
+    Iters = 48
     p = 1
     
     #Construct boundaries as constraints
@@ -74,5 +74,6 @@ if __name__ == "__main__":
         Sub_sample = list(tqdm(P.imap(task.task, init_params), total = len(init_params)))
     Result.append(Sub_sample)
     
-    filename = "./grid/initial_grid_p"+ str(p)
+    filename = "./wC/wC6nodes_p1_half_fine"
+    #filename = "./grid/initial_grid_p"+ str(p)
     np.save(filename, Result, allow_pickle=True)
