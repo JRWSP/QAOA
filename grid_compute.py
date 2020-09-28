@@ -117,8 +117,8 @@ if __name__ == "__main__":
             #E.append((e[0], e[1], 1.0))
             
         p=2
-        beta1 = 0.460
-        gamma1 = -0.053
+        beta1 = 0.15*np.pi
+        gamma1 = -0.16*np.pi
         #Prepare Qiskit framework
         backend     = Aer.get_backend("statevector_simulator")
         #Sinigle core calculation
