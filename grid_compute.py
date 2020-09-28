@@ -83,52 +83,14 @@ def rand_params(x, bnds, size):
     return np.round( local_rand.uniform(low=-bnds[x], high=bnds[x], size = size), 3 )
 
 
-def optim(params):
-    global history
-    beta, gamma = params[:p], params[p:]
-    counts = Qiskit_QAOA(beta, gamma, V, E)
-    avr_C       = 0
-    for sample in list(counts.keys()):
-        # use sampled bit string x to compute C(x)
-        x         = [int(num) for num in list(sample)]
-        tmp_eng   = cost_function_C(x,G)
-        # compute the expectation value and energy distribution
-        avr_C     = avr_C    + counts[sample]*tmp_eng
-    M1_sampled   = avr_C/shots
-    history = np.vstack((history, params))
-    return -M1_sampled
-
-
-if __name__ == "__main__":
-    #Create graph from adjacency matrix
-    n = 6
-    for n in tqdm([6]):
-    #for samp in tqdm(range(1)):
-        data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
-        #data = np.load('./uC/uC6nodes.npy', allow_pickle=True)
-        dist = data[0]['dist']
-        
-        G = nx.from_numpy_matrix(dist)
-        n = len(G.nodes())
-        V = np.arange(0, n, 1)
-        E = []
-        for e in G.edges():
-            E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
-            #E.append((e[0], e[1], 1.0))
-            
-        p=2
-        beta1 = 0.15*np.pi
-        gamma1 = -0.16*np.pi
-        #Prepare Qiskit framework
-        backend     = Aer.get_backend("statevector_simulator")
-        #Sinigle core calculation
-        Result = []
-        for bbeta in np.linspace(0, 0.5*np.pi, 100):
-            bbeta = np.round(bbeta, 3)
-            print("\n n"+str(n)+"beta"+str(bbeta))
+def grid_compute(p, *args, **kwargs):
+    #Sinigle core calculation
+    Result = []
+    #compute grid for beta = [0, 0.5pi] and gamma = [-pi, pi]
+    if p == 1:
+        for bbeta in tqdm(np.linspace(0, 0.5*np.pi, 100)):
             for ggamma in np.linspace(-1.0*np.pi, 1.0*np.pi, 200):
-                ggamma = np.round(ggamma, 3)
-                init_params = list(np.concatenate(( [beta1, bbeta] , [gamma1, ggamma])))
+                init_params = [bbeta, ggamma]
                 state = Qiskit_QAOA( init_params[:p], init_params[p:], V, E)
                 
                 avr_C       = 0
@@ -141,7 +103,62 @@ if __name__ == "__main__":
                 M1_sampled   = -avr_C
                 temp_res = {"beta": bbeta,"gamma": ggamma, "cost": np.round(M1_sampled, 3)}
                 Result.append(temp_res)
+        return Result
+    elif p > 1:
+        for bbeta in tqdm(np.linspace(0, 0.5*np.pi, 100)):
+            for ggamma in np.linspace(-1.0*np.pi, 1.0*np.pi, 200):
+                init_params = list(np.concatenate(( np.append(opbeta, bbeta) , np.append(opgamma, ggamma))))
+                state = Qiskit_QAOA( init_params[:p], init_params[p:], V, E)
                 
-        filename = "./grid/Grid"+str(n)+"p2_Statevector"
-        np.save(filename, Result, allow_pickle=True)
+                avr_C       = 0
+                for sample in list(state.keys()):
+                    # use sampled bit string x to compute C(x)
+                    x         = [int(num) for num in list(sample)]
+                    tmp_eng   = cost_function_C(x,G)
+                    # compute the expectation value and energy distribution
+                    avr_C     = avr_C    + state[sample]*tmp_eng
+                M1_sampled   = -avr_C
+                temp_res = {"beta": bbeta,"gamma": ggamma, "cost": np.round(M1_sampled, 3)}
+                Result.append(temp_res)
+        return Result
+    else:
+        print("Invalid p")
+    
+
+if __name__ == "__main__":
+    #Create graph from adjacency matrix
+    n = 6
+    data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
+    #data = np.load('./uC/uC6nodes.npy', allow_pickle=True)
+    dist = data[0]['dist']
+    
+    G = nx.from_numpy_matrix(dist)
+    n = len(G.nodes())
+    V = np.arange(0, n, 1)
+    E = []
+    for e in G.edges():
+        E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
+        
+    
+    p=1
+    opbeta = [0.15*np.pi]
+    opgamma = [-0.16*np.pi]
+    #Prepare Qiskit framework
+    backend     = Aer.get_backend("statevector_simulator")
+    if_save = 0
+    if p == 1: 
+        Res = grid_compute(p)
+        if_save = 1
+    elif p > 1 and len(opbeta) == len(opgamma):
+        Res = grid_compute(p, opbeta = opbeta, opgamma = opgamma)
+        if_save = 1
+    else:
+        print("Check optimum pre-initial beta and gamma.")
+    
+    if if_save == 1:
+        filename = "./grid/Grid_p"+str(p)
+        np.save(filename, Res, allow_pickle=True)
+        print("\n Res is saved.")
+    else:
+        print("\n Res is not saved.")
             
