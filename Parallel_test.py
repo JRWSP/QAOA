@@ -8,7 +8,7 @@ Created on Mon Jan 27 20:28:48 2020
 import numpy as np
 import scipy.optimize as optimize
 import networkx as nx
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from tqdm import tqdm, trange
 from sklearn.preprocessing import Normalizer
 
@@ -51,9 +51,9 @@ def Qiskit_QAOA(beta, gamma, V, E):
         for edge in E:
             k = edge[0]
             l = edge[1]
-            #w = gamma[a]*G[k][l]['weight']
-            t_w = 1.0*(G[k][l]['weight']**2)/(2.0* sigma**2)
-            w = gamma[a]* np.e**t_w
+            w = gamma[a]*G[k][l]['weight']
+            #t_w = 1.0*(G[k][l]['weight']**2)/(2.0* sigma**2)
+            #w = gamma[a]* np.e**t_w
             """
             QAOA.cx(k, l)
             QAOA.rz(w, l)
@@ -104,51 +104,48 @@ def optim(params):
 
 
 if __name__ == "__main__":
-    #N = 8
     #Create graph from adjacency matrix
-    for sigma in [1.0]:
+    for n in tqdm([6]):
+        #data = np.load('./Demo/w'+str(deg)+'R_8n.npy', allow_pickle=True)
+        data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
+        dist = data[0]['dist']
         
-        for n in tqdm([6]):
-            #data = np.load('./Demo/w'+str(deg)+'R_8n.npy', allow_pickle=True)
-            data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
-            dist = data[0]['dist']
+        G = nx.from_numpy_matrix(dist)
+        n = len(G.nodes())
+        V = np.arange(0, n, 1)
+        E = []
+        for e in G.edges():
+            E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
+            #E.append((e[0], e[1], dist[e[0]][e[1]]))
+        
+        n_cores = 6
+        Iters = 6
+        for p in range(1,2):
+            #Construct boundaries as constraints
+            bnds = {'beta': (0, 0.50*np.pi), 'gamma': (-0.25*np.pi, 0.25*np.pi)}
+            bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
             
-            G = nx.from_numpy_matrix(dist)
-            n = len(G.nodes())
-            V = np.arange(0, n, 1)
-            E = []
-            for e in G.edges():
-                E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
-                #E.append((e[0], e[1], dist[e[0]][e[1]]))
+
+            backend      = Aer.get_backend("qasm_simulator")
+            shots        = 2**(n+2)
             
-            n_cores = 24
-            Iters = 24
-            for p in range(1,2):
-                #Construct boundaries as constraints
-                bnds = {'beta': (0, 0.50*np.pi), 'gamma': (-1.0*np.pi, 1.0*np.pi)}
-                bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
-                
-    
-                backend      = Aer.get_backend("qasm_simulator")
-                shots        = 2**(n+2)
-                
-                Result = []
-                history = np.zeros(2*p)
-                def task(x):
-                    global history
-                    #Random initial parameters
-                    init_params = list(np.concatenate(( rand_params('beta', bnds, p) , rand_params('gamma', bnds, p))))
-                    if x%4 ==0:
-                        print("\n sigma = "+str(sigma)+" n = " + str(n) + "p = " + str(p) + " Iteration " + str(x) + "/" + str(Iters-1) )
-                    res = optimize.minimize(optim, init_params, method='Powell', bounds=bounds, options={'xtol':1e-3, 'ftol':1e-3})
-                    if res.success:
-                        return (res, history)
-                    else:
-                        raise ValueError(res.message)
-            
-                with Pool(n_cores) as P:
-                    Sub_sample = P.map(task, range(Iters))
-                Result.append(Sub_sample)
-                #filename = "./QAOA_Data/var2.0/p" +str(p) +"shots" +str(shots)
-                filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_specific_initiial"
-                #np.save(filename, Result, allow_pickle=True)
+            Result = []
+            history = np.zeros(2*p)
+            def task(x):
+                global history
+                #Random initial parameters
+                init_params = list(np.concatenate(( rand_params('beta', bnds, p) , rand_params('gamma', bnds, p))))
+                if x%4 ==0:
+                    print("\n" + str(n) + "p = " + str(p) + " Iteration " + str(x) + "/" + str(Iters-1) )
+                res = optimize.minimize(optim, init_params, method='Powell', bounds=bounds, options={'xtol':1e-3, 'ftol':1e-3})
+                if res.success:
+                    return (res, history)
+                else:
+                    raise ValueError(res.message)
+        
+            with Pool(n_cores) as P:
+                Sub_sample = P.map(task, range(Iters))
+            Result.append(Sub_sample)
+            #filename = "./QAOA_Data/var2.0/p" +str(p) +"shots" +str(shots)
+            filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_specific_initiial"
+            #np.save(filename, Result, allow_pickle=True)
