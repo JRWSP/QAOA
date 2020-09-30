@@ -105,7 +105,7 @@ def grid_compute(bbeta, *args, **kwargs):
 def grid_compute_highP(bbeta, *args, **kwargs):
     opbeta = [-0.304*np.pi, -0.420*np.pi, -0.460*np.pi, -0.475*np.pi]
     opgamma = [-0.126*np.pi, 0.156*np.pi, 0.166*np.pi, 0.196*np.pi]
-    
+
     Result = []
     if p-1 == len(opbeta) and p-1 == len(opgamma):
         for ggamma in np.linspace(-1.0*np.pi, 1.0*np.pi, 200):
@@ -122,11 +122,11 @@ def grid_compute_highP(bbeta, *args, **kwargs):
             M1_sampled   = -avr_C
             temp_res = {"beta": bbeta,"gamma": ggamma, "cost": np.round(M1_sampled, 3)}
             Result.append(temp_res)
-        return Result   
+        return Result
     else:
         print("check opbeta or opgamma.")
-        
-    
+
+
 #Create graph from adjacency matrix
 n = 6
 data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
@@ -139,7 +139,7 @@ V = np.arange(0, n, 1)
 E = []
 for e in G.edges():
     E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
-    
+
 #Prepare Qiskit framework
 backend     = Aer.get_backend("statevector_simulator")
 
