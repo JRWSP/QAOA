@@ -6,14 +6,16 @@ Created on Fri May  8 10:29:04 2020
 """
 
 import numpy as np
-import networkx as nx
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.mplot3d import axes3d
 
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams.update({'font.size': 15})
 
-grid6 = np.load("./grid/Grid_p5.npy", allow_pickle=True)
+pp = input("Input p: ")
+grid6 = np.load("./grid/Grid_p"+str(pp)+".npy", allow_pickle=True)
 #sample = 0
 #arr_max = [0.772, 0.837, 0.845, 0.851, 0.852]
 """
@@ -45,20 +47,33 @@ val2 = val2.reshape(200, 200)
 val2 = -1*val2/52.419
 val2 = np.around(val2, 3)
 
-ggamma = np.linspace(-np.pi, np.pi, 200)
-bbeta = np.linspace(-0.5*np.pi, 0.5*np.pi, 200)
+beta = np.linspace(-0.5*np.pi, 0.5*np.pi, 200)
+gamma = np.linspace(-np.pi, np.pi, 200)
+bbeta, ggamma = np.meshgrid(beta, gamma)
 
 #Find optimum point
+betamax, gammamax = np.unravel_index(np.argmax(val2), val2.shape)
+
 OpIdx = np.argmax(val2)
 OptBeta = OpIdx // 200
 OptGamma = OpIdx % 200
-print("OpBeta: %.3f pi, OptGamma: %.3f pi" %(bbeta[OptBeta]/np.pi, ggamma[OptGamma]/np.pi) )
+print("OpBeta: %.3f pi, OptGamma: %.3f pi" %(beta[OptBeta]/np.pi, gamma[OptGamma]/np.pi) )
 
-plt.figure(figsize=(10,6))
-plt.contourf(ggamma, bbeta, val2)
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+surf = ax.plot_surface(ggamma, bbeta, val2, rstride=8, cstride=8, alpha=0.3, cmap=cm.coolwarm)
+cset = ax.contourf(ggamma, bbeta, val2, cmap=cm.coolwarm, zdir='x', offset=-4)
+cset = ax.contourf(ggamma, bbeta, val2, cmap=cm.coolwarm, zdir='y', offset=2)
+cset = ax.contourf(ggamma, bbeta, val2, cmap=cm.coolwarm, zdir='z', offset=0)
 #plt.plot(traj_gamma, traj_beta, "-o")
+ax.set_xlabel(r"$\gamma$")
+ax.set_ylabel(r"$\beta$")
+ax.set_zlim(0.0, 1.0)
+#ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter('{x:.02f}')
+fig.colorbar(surf, shrink=0.5, aspect=5)
 
-plt.scatter(ggamma[OptGamma], bbeta[OptBeta])
+ax.plot(ggamma[OptBeta, OptGamma], bbeta[OptBeta, OptGamma], val2.max(), marker="o", ls="", c=cm.coolwarm(0.))
 
 #plt.scatter(traj_gamma[1], traj_beta[1])
 #plt.scatter(traj_gamma[-1], traj_beta[-1])
@@ -73,7 +88,7 @@ plt.yticks([-np.pi/2, -np.pi/4, 0, np.pi/4, np.pi/2],
            [r"$-0.500\pi$", r"$-0.250\pi$", r"$0$", r"$0.250\pi$", r"$0.500\pi$"])
 plt.ylabel(r"$\beta$")
 """
-plt.colorbar()
+#plt.colorbar()
 #plt.title("N = 6, P=2")
 plt.show()
 #plt.savefig("Checking2", dpi=300)
