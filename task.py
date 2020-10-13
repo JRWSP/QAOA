@@ -12,6 +12,10 @@ from qiskit import Aer, IBMQ
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit import quantum_info
 
+def rand_params(x, bnds, size):
+    local_rand = np.random.RandomState(None)
+    return np.round( local_rand.uniform(low=bnds[x][0], high=bnds[x][1], size = size), 3 )
+
 # Compute the value of the cost function
 def cost_function_C(x,G):
     E = G.edges()
@@ -98,6 +102,16 @@ def task(params):
     else:
         raise ValueError(res.message)
 
+def task_init(*args, **kwargs):
+    global history
+    #Random initial parameters
+    init_params = list(np.concatenate(( rand_params('beta', bnds, p) , rand_params('gamma', bnds, p))))
+    res = optimize.minimize(optim, init_params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
+    if res.success:
+        return (res, history)
+    else:
+        raise ValueError(res.message)
+
 def test(params):
     print('\n', params)
 
@@ -111,8 +125,9 @@ V = np.arange(0, n, 1)
 E = []
 for e in G.edges():
     E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
+
 p = 1
-bnds = {'beta': (0, 0.50*np.pi), 'gamma': (-0.50*np.pi, 0.50*np.pi)}
+bnds = {'beta': (-0.25*np.pi, 0.25*np.pi), 'gamma': (-0.50*np.pi, 0.50*np.pi)}
 bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
 
 backend     = Aer.get_backend("statevector_simulator")
