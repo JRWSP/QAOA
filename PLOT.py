@@ -55,17 +55,18 @@ n=6
 
 mean = np.array([])
 std = np.array([])
-for p in range(1, 2):
-    temp = np.array([])
-    #filename = "./wC/wC6nodes_p1_half_rough"
-    filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_heuristic"
-    data_temp = np.load(filename+".npy", allow_pickle=True)
-    temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
-    mean_temp = np.mean(temp)
-    std_temp = np.std(temp)
+#for p in range(2, 3):
+p=2
+temp = np.array([])
+#filename = "./wC/wC6nodes_p1_half_rough"
+filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_heuristic"
+data_temp = np.load(filename+".npy", allow_pickle=True)
+temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
+mean_temp = np.mean(temp)
+std_temp = np.std(temp)
 
-    mean = np.append(mean, mean_temp/(-52.419))
-    std = np.append(std, std_temp/(-52.419))
+mean = np.append(mean, mean_temp/(-52.419))
+std = np.append(std, std_temp/(-52.419))
 
 print(mean)
 

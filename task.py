@@ -11,6 +11,7 @@ import networkx as nx
 from qiskit import Aer, IBMQ
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit import quantum_info
+from config import *
 
 def rand_params(x, bnds, size):
     local_rand = np.random.RandomState(None)
@@ -93,15 +94,6 @@ def optim(params):
     history = np.vstack((history, params))
     return -M1_sampled
 
-
-def task(params):
-    global history
-    res = optimize.minimize(optim, params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
-    if res.success:
-        return (res, history)
-    else:
-        raise ValueError(res.message)
-
 def task_init(*args, **kwargs):
     global history
     #Random initial parameters
@@ -112,26 +104,18 @@ def task_init(*args, **kwargs):
     else:
         raise ValueError(res.message)
 
-def test(params):
-    print('\n', params)
+def task(params):
+    global history
+    params = list(params)
+    res = optimize.minimize(optim, params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
+    if res.success:
+        return (res, history)
+    else:
+        raise ValueError(res.message)
 
-n = 6
-data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
-dist = data[0]['dist']
-
-G = nx.from_numpy_matrix(dist)
-n = len(G.nodes())
-V = np.arange(0, n, 1)
-E = []
-for e in G.edges():
-    E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
-
-p = 1
-bnds = {'beta': (-0.25*np.pi, 0.25*np.pi), 'gamma': (-0.50*np.pi, 0.50*np.pi)}
-bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
-
-backend     = Aer.get_backend("statevector_simulator")
-#backend      = Aer.get_backend("qasm_simulator")
+def p_bounds(**kwargs):
+    print(p)
+    print(bounds)
 
 if backend.name() == "qasm_simulator":
     shots        = 2**(n+2)
