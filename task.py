@@ -104,18 +104,23 @@ def task_init(*args, **kwargs):
     else:
         raise ValueError(res.message)
 
-def task(params):
+def task(*args, **kwargs):
     global history
+    p = int(kwargs["layers"])
+    bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
+    #Get optimum parameters from a prior layer
+    filename = "./grid/grid_N"+str(n)+"_p"+str(p-1)+"_heuristic"
+    data_temp = np.load(filename+".npy", allow_pickle=True)
+    temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
+    params = data_temp[0][np.argmin(temp)][0].x
+    params = np.insert(params, p-1, params[p-2])
+    params = np.append(params, params[-1])
     params = list(params)
     res = optimize.minimize(optim, params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
     if res.success:
         return (res, history)
     else:
         raise ValueError(res.message)
-
-def p_bounds(**kwargs):
-    print(p)
-    print(bounds)
 
 if backend.name() == "qasm_simulator":
     shots        = 2**(n+2)

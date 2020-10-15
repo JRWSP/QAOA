@@ -13,9 +13,7 @@ E = []
 for e in G.edges():
     E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
 
-#p = 1
 
 backend     = Aer.get_backend("statevector_simulator")
 
 bnds = {'beta': (-0.25*np.pi, 0.25*np.pi), 'gamma': (-0.50*np.pi, 0.50*np.pi)}
-#bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
