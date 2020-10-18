@@ -28,18 +28,21 @@ from config import *
 
 if __name__ == "__main__":
     #n = 6
-    n_cores = 24
+    n_cores = 12
     Iters = 24
     Result = []
-    for p = range(2, 6):
+    for p in range(2, 3):
         if p == 1:
             with Pool(n_cores) as P:
                 Sub_sample = list(tqdm(P.imap(task.task_init, range(Iters)), total=Iters))
             Result.append(Sub_sample)
         elif p > 1:
-            Sub_sample = task.task(layers=p)
+            Iters = [p]*Iters
+            with Pool(n_cores) as P:
+                Sub_sample = list(tqdm(P.imap(task.task, Iters), total=len(Iters)))
+            #Sub_sample = task.task(layers = p)
             Result.append(Sub_sample)
-            print("done p =", p)
+            #print("done p =", p)
         else:
             raise TypeError("Check func")
 

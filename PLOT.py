@@ -62,13 +62,20 @@ temp = np.array([])
 filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_heuristic"
 data_temp = np.load(filename+".npy", allow_pickle=True)
 temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
+"""
+if p <2:
+    temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
+else:
+    temp = data_temp[0][0].fun
+"""
 mean_temp = np.mean(temp)
 std_temp = np.std(temp)
 
 mean = np.append(mean, mean_temp/(-52.419))
 std = np.append(std, std_temp/(-52.419))
 
-print(mean)
+#plt.scatter(range(len(temp)), temp/-52.419)
+#plt.show()
 
 
 """
