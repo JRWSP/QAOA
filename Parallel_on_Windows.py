@@ -56,7 +56,7 @@ if __name__ == "__main__":
     p = 1
 
     #Construct boundaries as constraints
-    bnds = {'beta': (0, 0.50*np.pi), 'gamma': (-0.50*np.pi, 0.50*np.pi)}
+    bnds = {'beta': (-0.25*np.pi, 0.25*np.pi), 'gamma': (-0.50*np.pi, 0.50*np.pi)}
     bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
     grid_beta = np.arange(bnds['beta'][0], bnds['beta'][1], 0.01, dtype=np.float)
     grid_gamma = np.arange(bnds['gamma'][0], bnds['gamma'][1], 0.01, dtype=np.float)
@@ -65,10 +65,7 @@ if __name__ == "__main__":
     init_params = [[ grid_beta[a], grid_gamma[b] ] for (a,b) in args]
 
     Result = []
-
-
     #test = task.task(init_params[0])
-
     with Pool(n_cores) as P:
         #Sub_sample = list(tqdm(P.imap(task.test, init_params), total = len(init_params)))
         Sub_sample = list(tqdm(P.imap(task.task, init_params), total = len(init_params)))
