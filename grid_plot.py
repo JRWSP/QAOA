@@ -17,7 +17,7 @@ plt.rcParams.update({'font.size': 15})
 pp = input("Input p: ")
 grid6 = np.load("./grid/Grid_p"+str(pp)+".npy", allow_pickle=True)
 #sample = 0
-#arr_max = [0.772, 0.837, 0.845, 0.851, 0.852]
+
 """
 #res6 = np.load("./grid/initial_grid_p1.npy", allow_pickle=True)
 res = np.array(res6[0][0][0].x)

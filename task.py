@@ -11,6 +11,11 @@ import networkx as nx
 from qiskit import Aer, IBMQ
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit import quantum_info
+from config import *
+
+def rand_params(x, bnds, size):
+    local_rand = np.random.RandomState(None)
+    return np.round( local_rand.uniform(low=bnds[x][0], high=bnds[x][1], size = size), 3 )
 
 # Compute the value of the cost function
 def cost_function_C(x,G):
@@ -89,34 +94,48 @@ def optim(params):
     history = np.vstack((history, params))
     return -M1_sampled
 
-
-def task(params):
-    global history
-    res = optimize.minimize(optim, params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
+def task_init(*args, **kwargs):
+    history = np.zeros(2*p)
+    #global history
+    bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
+    #Random initial parameters
+    init_params = list(np.concatenate(( rand_params('beta', bnds, p) , rand_params('gamma', bnds, p))))
+    res = optimize.minimize(optim, init_params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
     if res.success:
         return (res, history)
     else:
         raise ValueError(res.message)
 
-def test(params):
-    print('\n', params)
+def task(params, *args, **kwargs):
+    global history, p
+    p = int(len(params)/2)
+    #p = int(kwargs["layers"])
+    history = np.zeros(2*p)
+    bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
+    #Get optimum parameters from a prior layer
+    """
+    filename = "./grid/grid_N"+str(n)+"_p"+str(p-1)+"_heuristic"
+    data_temp = np.load(filename+".npy", allow_pickle=True)
+    temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
+    params = data_temp[0][np.argmin(temp)][0].x
+    params = np.insert(params, p-1, params[p-2])
+    params = np.append(params, params[-1])
+    params = list(params)
 
-n = 6
-data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
-dist = data[0]['dist']
-
-G = nx.from_numpy_matrix(dist)
-n = len(G.nodes())
-V = np.arange(0, n, 1)
-E = []
-for e in G.edges():
-    E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
-p = 1
-bnds = {'beta': (0, 0.50*np.pi), 'gamma': (-0.50*np.pi, 0.50*np.pi)}
-bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
-
-backend     = Aer.get_backend("statevector_simulator")
-#backend      = Aer.get_backend("qasm_simulator")
+    if p == 2:
+        temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
+        params = data_temp[0][np.argmin(temp)][0].x
+    elif p > 2:
+        params = data_temp[0][0].x
+    else:
+        raise TypeError("Check p", p)
+        
+    """
+    res = optimize.minimize(optim, params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
+    if res.success:
+        return (res, history)
+    else:
+        raise ValueError(res.message)
 
 if backend.name() == "qasm_simulator":
     shots        = 2**(n+2)
@@ -125,4 +144,5 @@ elif backend.name() == "statevector_simulator":
 else:
     raise TypeError("Check backend.")
 
+p = 1
 history = np.zeros(2*p)
