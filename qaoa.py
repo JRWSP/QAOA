@@ -20,6 +20,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit.providers.ibmq      import least_busy
 from qiskit.tools.monitor       import job_monitor
 from qiskit.visualization import plot_histogram
+from config import *
 
 # Compute the value of the cost function
 def cost_function_C(x,G):
@@ -90,12 +91,12 @@ def optim(params):
 
 def rand_params(x, bnds, size):
     return np.round( np.random.uniform(low=-bnds[x], high=bnds[x], size = size), 3 )
-
+"""
 # Generating the butterfly graph with 5 nodes 
 n     = 5
 V     = np.arange(0,n,1)
 E     =[(0,1,1.0),(0,2,3.0),(1,2,3.0),(3,1,3.0),(3,4,2.0),(4,2,2.0)] 
-"""
+
 #Create graph from adjacency matrix
 dist = np.loadtxt('3_dist.csv', delimiter=',')
 n = len(dist[0])
@@ -104,10 +105,11 @@ E = []
 for j in range(n):
     for k in range(1, n-j):
         E.append((j, j+k, dist[j, j+k]))
-"""
+
 G     = nx.Graph()
 G.add_nodes_from(V)
 G.add_weighted_edges_from(E)
+"""
 
 """
 # Generate plot of the Graph
@@ -117,7 +119,7 @@ pos          = nx.spring_layout(G)
 nx.draw_networkx(G, node_color=colors, node_size=600, alpha=1, ax=default_axes, pos=pos)
 """
 
-p=10
+p=1
 
 #Construct boundaries as constraints
 bnds = {'beta': 0.25*np.pi, 'gamma': 0.50*np.pi}
@@ -134,7 +136,7 @@ for factor in range(len(bounds)):
         cons.append(l)
         cons.append(u)
 
-Itertion = 20
+Itertion = 1
 H = np.zeros(Itertion)
 for ii in range(Itertion):
     print(ii)
@@ -151,7 +153,8 @@ for ii in range(Itertion):
     shots        = 100
     res = optimize.minimize(optim, init_params, method='COBYLA', constraints=cons, options={'disp': True})
     if res.success:
-        best_params = {'beta': res.x[0], 'gamma': res.x[1]}
+    	best_params = res.x
+        #best_params = {'beta': res.x[0], 'gamma': res.x[1]}
     else:
         raise ValueError(res.message)
     """
@@ -163,10 +166,10 @@ for ii in range(Itertion):
     H[ii] = res.fun
 
 
-"""
 #Get optimal solution
 shots = 100
-result = Qiskit_QAOA(best_params['beta'], best_params['gamma'], V, E)
+best_beta, best_gamma = best_params[:p], best_params[p:]
+result = Qiskit_QAOA(best_beta, best_gamma, V, E)
 plot_histogram(result,figsize = (8,6),bar_labels = False, title='Prob_distribution of the final state.')
 
 avr_C       = 0
@@ -194,9 +197,10 @@ M1_sampled   = avr_C/shots
 
 print('\n --- SIMULATION RESULTS ---\n')
 print(res)
-#print('The approximate solution is x* = %s with C(x*) = %d \n' % (max_C[0],max_C[1]))
-#plot_histogram(hist,figsize = (8,6),bar_labels = False, title='Distribution of the cost function')
+print('The approximate solution is x* = %s with C(x*) = %.3f \n' % (max_C[0],max_C[1]))
+plot_histogram(hist,figsize = (8,6),bar_labels = False, title='Distribution of the cost function')
 
+"""
 plt.figure()
 par = {0:"Beta", 1:"Gamma"}
 for var in range(2):

@@ -7,20 +7,9 @@ Created on Sat Apr 25 16:20:46 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
+from config import smple
 
-
-max_wC = {6: 52.419,
-         7: 75.165,
-         8: 83.683,
-         9: 131.743,
-         10: 132.297,
-         11: 183.827,
-         12: 240.005,
-         13: 270.078}
-max_uC = {6: 9.0,
-         8: 16.0,
-         10: 25.0,
-         12: 36.0}
+sol6 = [-52.419, -35.873, -56.679]
 """
 hr = "./wC/wC6nodes_p1_half_rough"
 hf = "./wC/wC6nodes_p1_half_fine"
@@ -55,27 +44,41 @@ n=6
 
 mean = np.array([])
 std = np.array([])
-#for p in range(2, 3):
-p=2
-temp = np.array([])
-#filename = "./wC/wC6nodes_p1_half_rough"
-filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_heuristic"
-data_temp = np.load(filename+".npy", allow_pickle=True)
-temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
-"""
-if p <2:
+for p in range(1,11):
+#p=1
+    temp = np.array([])
+    #filename = "./wC/wC6nodes_p1_half_rough"
+    filename = "./Heuristic/Heuristic_N"+str(n)+"_p"+str(p)+"_sample"+str(smple)
+    data_temp = np.load(filename+".npy", allow_pickle=True)
     temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
-else:
-    temp = data_temp[0][0].fun
+
+    mean_temp = np.mean(temp)
+    std_temp = np.std(temp)
+
+    mean = np.append(mean, mean_temp/sol6[smple])
+    std = np.append(std, std_temp/sol6[smple])
+    plt.scatter(p, np.min(temp)*100/sol6[smple])
+    #plt.scatter(range(len(temp)), temp*100/sol6[smple])
+plt.ylabel("Approx. ratio (%)")
+plt.xticks([])
+plt.title("Heuristic, 240initials")
+#plt.legend(["p=1", "p=3", "p=5"])
+#plt.savefig("./fig/heuristic", dpi=250)
+plt.show()
+
 """
-mean_temp = np.mean(temp)
-std_temp = np.std(temp)
-
-mean = np.append(mean, mean_temp/(-52.419))
-std = np.append(std, std_temp/(-52.419))
-
-#plt.scatter(range(len(temp)), temp/-52.419)
-#plt.show()
+#arr_max = [0.772, 0.837, 0.845, 0.851, 0.852]
+#Heu_max = [0.777, 0.902, 0.923, 0.941, 0.954]
+fig = plt.figure()
+plt.scatter(range(1, 6), arr_max*100)
+plt.scatter(range(1, 6), Heu_max*100)
+plt.title("Max r from 240 Heuristic QAOA")
+plt.xticks([1, 2, 3, 4, 5])
+plt.xlabel("p")
+plt.ylabel("Approx. ratio (%)")
+plt.legend(["fix prior params", "optimize all params"])
+plt.savefig("./fig/maxR", dpi=150)
+"""
 
 
 """

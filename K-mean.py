@@ -11,7 +11,10 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.datasets import make_blobs
 
-pos = np.loadtxt('1_pos_data.csv', delimiter=',')
+n = 6
+data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
+pos = data[2]['dist']
+#pos = np.loadtxt('1_pos_data.csv', delimiter=',')
 #plt.scatter(pos[:, 0], pos[:, 1])
 
 n_clusters = 2

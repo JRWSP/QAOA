@@ -106,26 +106,12 @@ def task_init(*args, **kwargs):
     else:
         raise ValueError(res.message)
 
-def task(layers, *args, **kwargs):
+def task(params, *args, **kwargs):
     global history, p
-    p = int(layers)
+    p = int(len(params)/2)
     #p = int(kwargs["layers"])
     history = np.zeros(2*p)
     bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
-    #Get optimum parameters from a prior layer
-    filename = "./grid/grid_N"+str(n)+"_p"+str(p-1)+"_heuristic"
-    data_temp = np.load(filename+".npy", allow_pickle=True)
-    if p < 3:
-        temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
-        params = data_temp[0][np.argmin(temp)][0].x
-    elif p >= 3:
-        params = data_temp[0][0].x
-    else:
-        raise TypeError("Check p", p)
-
-    params = np.insert(params, p-1, params[p-2])
-    params = np.append(params, params[-1])
-    params = list(params)
     res = optimize.minimize(optim, params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
     if res.success:
         return (res, history)
@@ -139,6 +125,5 @@ elif backend.name() == "statevector_simulator":
 else:
     raise TypeError("Check backend.")
 
-p = 0
-#p = 1
-history = np.zeros(1)
+p = 1
+history = np.zeros(2*p)
