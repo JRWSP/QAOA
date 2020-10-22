@@ -51,10 +51,10 @@ for p in range(1,11):
     filename = "./Heuristic/Heuristic_N"+str(n)+"_p"+str(p)+"_sample"+str(smple)
     data_temp = np.load(filename+".npy", allow_pickle=True)
     temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
-    
+
     mean_temp = np.mean(temp)
     std_temp = np.std(temp)
-    
+
     mean = np.append(mean, mean_temp/sol6[smple])
     std = np.append(std, std_temp/sol6[smple])
     plt.scatter(p, np.min(temp)*100/sol6[smple])
