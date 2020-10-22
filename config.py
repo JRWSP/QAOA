@@ -3,8 +3,9 @@ import networkx as nx
 from qiskit import Aer
 
 n = 6
+smple = 2
 data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
-dist = data[0]['dist']
+dist = data[smple]['dist']
 
 G = nx.from_numpy_matrix(dist)
 n = len(G.nodes())

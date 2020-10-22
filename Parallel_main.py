@@ -28,16 +28,17 @@ from config import *
 
 if __name__ == "__main__":
     #n = 6
-    n_cores = 12
+    n_cores = 24
     Iters = 240
-    for p in range(3, 6):
+    for p in range(1, 11):
+        print("\n p: ", p)
         Result = []
         if p == 1:
             with Pool(n_cores) as P:
                 Sub_sample = list(tqdm(P.imap(task.task_init, range(Iters)), total=Iters))
             Result.append(Sub_sample)
         elif p > 1:
-            filename = "./grid/grid_N"+str(n)+"_p"+str(p-1)+"_heuristic"
+            filename = "./Heuristic/Heuristic_N"+str(n)+"_p"+str(p-1)+"_sample" +str(smple)
             data_temp = np.load(filename+".npy", allow_pickle=True)
             params = np.array([data_temp[0][ii][0].x for ii in range(len(data_temp[0]))])
             #params = data_temp[0][np.argmin(temp)][0].x
@@ -53,5 +54,5 @@ if __name__ == "__main__":
             raise TypeError("Check func")
 
 
-        filename = "./grid/grid_N"+str(n)+"_p"+str(p)+"_heuristic"
+        filename = "./Heuristic/Heuristic_N"+str(n)+"_p"+str(p)+"_sample" + str(smple)
         np.save(filename, Result, allow_pickle=True)
