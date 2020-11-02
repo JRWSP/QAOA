@@ -9,7 +9,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from config import smple
 
-sol6 = [-52.419, -35.873, -56.679]
+sol6 = [-52.419, -35.872, -56.679, -51.35, -45.872, -55.649, -52.52, -57.38, -50.07, -51.043]
+
+
+sol10 = [-132.297, -142.293, -155.565, -172.746, -174.125, -147.146, -176.785, -169.427, -142.972, -173.048]
+
 """
 hr = "./wC/wC6nodes_p1_half_rough"
 hf = "./wC/wC6nodes_p1_half_fine"
@@ -42,25 +46,23 @@ plt.errorbar(range(1, 11), 100*mean, yerr=[low_err, upp_err], color="C0", fmt='o
 """
 n=6
 
-mean = np.array([])
-std = np.array([])
-for p in range(1,11):
-#p=1
-    temp = np.array([])
-    #filename = "./wC/wC6nodes_p1_half_rough"
-    filename = "./Heuristic/Heuristic_N"+str(n)+"_p"+str(p)+"_sample"+str(smple)
-    data_temp = np.load(filename+".npy", allow_pickle=True)
-    temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
-
-    mean_temp = np.mean(temp)
-    std_temp = np.std(temp)
-
-    mean = np.append(mean, mean_temp/sol6[smple])
-    std = np.append(std, std_temp/sol6[smple])
-    plt.scatter(p, np.min(temp)*100/sol6[smple])
-    #plt.scatter(range(len(temp)), temp*100/sol6[smple])
+for smple in range(0, 1):
+    Min6 = []
+    for p in range(1,3):
+        temp = np.array([])
+        filename = "./Heuristic/Heuristic_N"+str(n)+"_p"+str(p)+"_sample"+str(smple) +"10dis"
+        data_temp = np.load(filename+".npy", allow_pickle=True)
+        temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
+        """
+        mean_temp = np.mean(temp)
+        std_temp = np.std(temp)
+        mean = np.append(mean, mean_temp/sol6[smple])
+        std = np.append(std, std_temp/sol6[smple])
+        """
+        Min6.append(np.min(temp)*100/-90.277)#sol10[smple])
+    plt.scatter(range(1, 3), Min6)
 plt.ylabel("Approx. ratio (%)")
-plt.xticks([])
+#plt.xticks([])
 plt.title("Heuristic, 240initials")
 #plt.legend(["p=1", "p=3", "p=5"])
 #plt.savefig("./fig/heuristic", dpi=250)
