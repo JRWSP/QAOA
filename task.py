@@ -27,8 +27,10 @@ def cost_function_C(x,G):
         e1 = index[0]
         e2 = index[1]
         w      = G[e1][e2]['weight']
-        #t_w = 1.0*(G[e1][e2]['weight']**2)/(2.0* sigma**2)
-        #w = np.e**t_w
+        #sigma = 1.0
+        #t_w = G[e1][e2]['weight']**2/(2.0* sigma**2)
+        #w = np.exp(-t_w)
+
         C = C + w*x[e1]*(1-x[e2]) + w*x[e2]*(1-x[e1])
     return C
 
@@ -43,9 +45,12 @@ def Qiskit_QAOA(beta, gamma, V, E):
         for edge in E:
             k = edge[0]
             l = edge[1]
+
             w = gamma[a]*G[k][l]['weight']
-            #t_w = 1.0*(G[k][l]['weight']**2)/(2.0* sigma**2)
-            #w = gamma[a]* np.e**t_w
+            #sigma = 1.0
+            #t_w = G[k][l]['weight']**2/(2.0* sigma**2)
+            #w = gamma[a]* np.exp(-t_w)
+
             QAOA.cu1(-2*w, k, l)
             QAOA.u1(w, k)
             QAOA.u1(w, l)
@@ -92,7 +97,10 @@ def optim(params):
         avr_C     = avr_C    + counts[sample]*tmp_eng
     M1_sampled   = avr_C/shots
     history = np.vstack((history, params))
+
+    # Return negative M1 for normal weight, positive M1 for gaussian kernel.
     return -M1_sampled
+
 
 def task_init(*args, **kwargs):
     history = np.zeros(2*p)
