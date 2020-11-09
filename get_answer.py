@@ -53,7 +53,7 @@ if __name__ == "__main__":
     sol6 = []
     n = config.n
     p = 1
-    for smple in range(1):
+    for smple in range(1, 2):
         #data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
         data = np.load('./wC/wC'+str(n)+"nodes10dis.npy", allow_pickle=True)
         dist = data[smple]['dist']
