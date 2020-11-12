@@ -3,18 +3,31 @@ import networkx as nx
 from qiskit import Aer
 from sklearn.preprocessing import Normalizer
 
-def FILENAME(nodes, layers, smple):
+def FILE_HEURISTIC(nodes, layers, smple):
     if type(nodes) == type(layers) == type(smple):
-        return "./RI/RI_N" + str(nodes) + "_p" + str(layers)+"_sample"+str(smple)
-        #return "./Heuristic/Heuristic_N" + str(nodes) + "_p" + str(layers)# + "_sample" + str(smple)# +"_norm"
+        return "./Heuristic/N"+str(n)+"/Heuristic_N" + str(nodes) + "_p" + str(layers) + "_sample" + str(smple)+"10dis_norm"
     else:
         raise Exception("Inputs should be integers.")
 
-n = 10
+def FILE_RI(nodes, layers, smple):
+    if type(nodes) == type(layers) == type(smple):
+        return "./RI"+str(n)+"/RI_N" + str(nodes) + "_p" + str(layers)+"_sample"+str(smple)
+        #return "./uC/uC" + str(nodes) + "nodes_p" + str(layers)
+    else:
+        raise Exception("Inputs should be integers.")
+def FIGNAME(nodes, smple):
+    if type(nodes) == type(smple):
+        #return "./fig/uC_" + str(nodes) +"_sample"+str(smple)
+        return "./fig/Heuristic_N" + str(nodes) +"_sample" + str(smple) +"_dist_norm"
+    else:
+        raise Exception("Inputs should be integers.")
+
+n = 6
+layer = 10
 smple = 0
 
-data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
-#data = np.load('./wC/wC'+str(n)+"nodes10dis.npy", allow_pickle=True)
+#data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
+data = np.load('./wC/wC'+str(n)+"nodes10dis.npy", allow_pickle=True)
 dist = data[smple]['dist']
 dist_norm = Normalizer().transform(dist)
 

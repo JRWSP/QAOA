@@ -46,7 +46,9 @@ def Qiskit_QAOA(beta, gamma, V, E):
             k = edge[0]
             l = edge[1]
 
-            w = gamma[a]*G[k][l]['weight']
+            w = gamma[a]*G_norm[k][l]['weight']
+            #w = gamma[a]*G_norm[k][l]['weight']
+
             #sigma = 1.0
             #t_w = G[k][l]['weight']**2/(2.0* sigma**2)
             #w = gamma[a]* np.exp(-t_w)
@@ -102,12 +104,12 @@ def optim(params):
     return -M1_sampled
 
 
-def task_init(*args, **kwargs):
-    history = np.zeros(2*p)
-    #global history
-    bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
+def task_init(layers, *args, **kwargs):
+    global history
+    history = np.zeros(2*layers)
+    bounds = [ bnds['beta'] ]*layers + [ bnds['gamma'] ] *layers
     #Random initial parameters
-    init_params = list(np.concatenate(( rand_params('beta', bnds, p) , rand_params('gamma', bnds, p))))
+    init_params = list(np.concatenate(( rand_params('beta', bnds, layers) , rand_params('gamma', bnds, layers))))
     res = optimize.minimize(optim, init_params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
     if res.success:
         return (res, history)
@@ -117,7 +119,6 @@ def task_init(*args, **kwargs):
 def task(params, *args, **kwargs):
     global history, p
     p = int(len(params)/2)
-    #p = int(kwargs["layers"])
     history = np.zeros(2*p)
     bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
     res = optimize.minimize(optim, params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
@@ -133,5 +134,5 @@ elif backend.name() == "statevector_simulator":
 else:
     raise TypeError("Check backend.")
 
-p = 1
+p = layer
 history = np.zeros(2*p)
