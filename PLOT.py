@@ -8,13 +8,16 @@ Created on Sat Apr 25 16:20:46 2020
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from config import FIGNAME, FILE_RI, FILE_HEURISTIC, smple, n
+import config
+from config import FIGNAME, FILE_RI, FILE_HEURISTIC, SMPLE, N
 
 sol6 = [-52.419, -35.872, -56.679, -51.35, -45.872, -55.649, -52.52, -57.38, -50.07, -51.043]
 sol6_10dis = [-90.277, -89.716]
+sol6_50dis = [-893.722]
 
 sol10 = [-132.297, -142.293, -155.565, -172.746, -174.125, -147.146, -176.785, -169.427, -142.972, -173.048]
 sol10_10dis = [-243.761, -247.230]
+sol10_50dis = [-2488.370]
 """
 hr = "./wC/wC6nodes_p1_half_rough"
 hf = "./wC/wC6nodes_p1_half_fine"
@@ -59,9 +62,28 @@ for p in range(1,last):
     mean_temp = 0
     std_temp = 0
 
-    sol_min = sol6_10dis[smple]
-    """
-    file_heu = FILE_HEURISTIC(n, p, smple)
+    if config.N == 6:
+        if config.LARGE_DISTANCE == True:
+            sol_min = sol6_50dis[SMPLE]
+        else:
+            sol_min = sol6[SMPLE]
+    elif config.N == 10:
+        if config.LARGE_DISTANCE == True:
+            sol_min = sol10_50dis[SMPLE]
+        else:
+            sol_min = sol10[SMPLE]
+    else:
+        raise Exception("Check N")
+
+    if config.STRAT == "_Heuristic":
+        file = FILE_HEURISTIC(N, p, SMPLE)
+    elif config.STRAT == "_RI":
+        file = FILE_RI(N, p, SMPLE)
+    else:
+        raise Exception("Invalid Strategies")
+
+
+    file_heu = FILE_HEURISTIC(N, p, SMPLE)
     data_temp = np.load(file_heu+".npy", allow_pickle=True)
     #data_temp = data_temp[::2]
     temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
@@ -71,9 +93,9 @@ for p in range(1,last):
     mean_heu = np.append(mean_heu, mean_temp/sol_min)
     std_heu = np.append(std_heu, std_temp/sol_min)
     Min_heu.append(np.min(temp)/sol_min)#sol10[smple])
-    """
 
-    file = FILE_HEURISTIC(n, p, smple)
+    """
+    file = FILE_RI(N,p,SMPLE)
     data_temp = np.load(file+".npy", allow_pickle=True)
     #data_temp = data_temp[::2]
     temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
@@ -86,9 +108,9 @@ for p in range(1,last):
     mean = np.append(mean, mean_temp/sol_min)
     std = np.append(std, std_temp/sol_min)
     Min6.append(Op_fun/sol_min)#sol10[smple])
-
-#Scatter avg and best costs with std error.
 """
+#Scatter avg and best costs with std error.
+fig = plt.figure(figsize=(10, 8))
 plt.errorbar(np.arange(1, 11)+0.1, mean_heu,
              std_heu,
              fmt='o',
@@ -96,10 +118,11 @@ plt.errorbar(np.arange(1, 11)+0.1, mean_heu,
              color='b',
              ecolor='b',
              markerfacecolor='None',
-             label="Heuristic search")
+             label="Heuristic")
 plt.scatter(np.arange(1, 11)+0.1, Min_heu,
             marker='x',
             color='b')
+
 """
 plt.errorbar(np.arange(1, last), mean,
              std,
@@ -108,18 +131,19 @@ plt.errorbar(np.arange(1, last), mean,
              color='k',
              ecolor='k',
              markerfacecolor='None',
-             label="Heuristic search")
+             label="Random search")
 plt.scatter(np.arange(1, last), Min6,
             marker='x',
             color='k')
+"""
 plt.ylabel("Approx. ratio")
-plt.ylim([0.60, 1.0])
+plt.ylim([0.50, 1.0])
 plt.xlabel("p")
 plt.xticks(range(1,11))
 #plt.title("Heuristic, 240initials")
 plt.legend()
 plt.grid(alpha=0.5)
-#plt.savefig(FIGNAME(n, smple), dpi=250)
+#plt.savefig(FIGNAME(N, SMPLE, Strat = config.STRAT), dpi=250)
 plt.show()
 
 

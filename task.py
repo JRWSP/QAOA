@@ -18,7 +18,7 @@ def rand_params(x, bnds, size):
     return np.round( local_rand.uniform(low=bnds[x][0], high=bnds[x][1], size = size), 3 )
 
 # Compute the value of the cost function
-def cost_function_C(x,G):
+def cost_function_C(x):
     E = G.edges()
     if( len(x) != len(G.nodes())):
         return np.nan
@@ -34,7 +34,11 @@ def cost_function_C(x,G):
         C = C + w*x[e1]*(1-x[e2]) + w*x[e2]*(1-x[e1])
     return C
 
-def Qiskit_QAOA(beta, gamma, V, E):
+def Qiskit_QAOA(beta, gamma, norm=False):
+    if norm == True:
+        graph = G_norm
+    else:
+        graph = G
     # preapre the quantum and classical resisters
     QAOA = QuantumCircuit(len(V), len(V))
     # apply the layer of Hadamard gates to all qubits
@@ -46,7 +50,7 @@ def Qiskit_QAOA(beta, gamma, V, E):
             k = edge[0]
             l = edge[1]
 
-            w = gamma[a]*G_norm[k][l]['weight']
+            w = gamma[a]*graph[k][l]['weight']
             #w = gamma[a]*G_norm[k][l]['weight']
 
             #sigma = 1.0
@@ -88,13 +92,13 @@ def optim(params):
     global history
     beta, gamma = params[:p], params[p:]
     #beta, gamma = params[0], params[1]
-    counts = Qiskit_QAOA(beta, gamma, V, E)
+    counts = Qiskit_QAOA(beta, gamma, norm=NORM)
 
     avr_C       = 0
     for sample in list(counts.keys()):
         # use sampled bit string x to compute C(x)
         x         = [int(num) for num in list(sample)]
-        tmp_eng   = cost_function_C(x,G)
+        tmp_eng   = cost_function_C(x)
         # compute the expectation value and energy distribution
         avr_C     = avr_C    + counts[sample]*tmp_eng
     M1_sampled   = avr_C/shots
@@ -106,11 +110,16 @@ def optim(params):
 
 def task_init(layers, *args, **kwargs):
     global history
-    history = np.zeros(2*layers)
-    bounds = [ bnds['beta'] ]*layers + [ bnds['gamma'] ] *layers
+    history = np.zeros(2*1)
     #Random initial parameters
-    init_params = list(np.concatenate(( rand_params('beta', bnds, layers) , rand_params('gamma', bnds, layers))))
-    res = optimize.minimize(optim, init_params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
+    init_params = list(np.concatenate(( rand_params('beta', bnds, 1) , rand_params('gamma', bnds, 1))))
+    if METH == "Powell":
+        bounds = [ bnds['beta'] ]*1 + [ bnds['gamma'] ] *1
+        res = optimize.minimize(optim, init_params, method=METH, bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
+    elif METH == "COBYLA":
+        Cons = SetConstrain(1)
+        res = optimize.minimize(optim, init_params, method=METH, constraints=Cons, options={'rhobeg':0.1, 'maxiter':N*1000})
+
     if res.success:
         return (res, history)
     else:
@@ -120,19 +129,24 @@ def task(params, *args, **kwargs):
     global history, p
     p = int(len(params)/2)
     history = np.zeros(2*p)
-    bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
-    res = optimize.minimize(optim, params, method='Powell', bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
+    if METH == "Powell":
+        bounds = [ bnds['beta'] ]*p + [ bnds['gamma'] ] *p
+        res = optimize.minimize(optim, params, method=METH, bounds=bounds, options={'xtol':1e-5, 'ftol':1e-4})
+    elif METH == "COBYLA":
+        Cons = SetConstrain(p)
+        res = optimize.minimize(optim, params, method=METH, constraints=Cons, options={'rhobeg':0.1, 'maxiter':N*1000})
+
     if res.success:
         return (res, history)
     else:
         raise ValueError(res.message)
 
 if backend.name() == "qasm_simulator":
-    shots        = 2**(n+2)
+    shots        = 2**(N+2)
 elif backend.name() == "statevector_simulator":
     shots        = 1
 else:
     raise TypeError("Check backend.")
 
-p = layer
+p = LAYER
 history = np.zeros(2*p)

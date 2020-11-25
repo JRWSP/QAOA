@@ -17,31 +17,32 @@ from qiskit.providers.ibmq      import least_busy
 from qiskit.tools.monitor       import job_monitor
 from qiskit.visualization import plot_histogram
 import grid_compute
+from config import *
 
 if __name__ == "__main__":
 
-    n_cores = 10
-    p=5
+    n_cores = 20
+    p=LAYER
 
     if_save = 0
-    
+
     if p == 1:
-        beta = np.linspace(-0.5*np.pi, 0.5*np.pi, 200)
+        beta = np.linspace(0.0*np.pi, 1.0*np.pi, 400)
         with Pool(n_cores) as P:
             Res = list(tqdm(P.imap(grid_compute.grid_compute, beta), total=len(beta)))
         if_save = 1
-        
+
     elif p > 1:
-        beta = np.linspace(-0.5*np.pi, 0.5*np.pi, 200)
+        beta = np.linspace(0.0*np.pi, 0.50*np.pi, 400)
         with Pool(n_cores) as P:
             Res = list(tqdm(P.imap(grid_compute.grid_compute_highP, beta), total=len(beta)))
         if_save = 1
-        
+
     else:
         print("Check optimum pre-initial beta and gamma.")
 
     if if_save == 1:
-        filename = "./grid/Grid_p"+str(p)
+        filename = GRID(N, p, SMPLE)
         np.save(filename, Res, allow_pickle=True)
         print("\n Res is saved.")
     else:
