@@ -7,21 +7,12 @@ Created on Mon Jan 27 20:28:48 2020
 import numpy as np
 import scipy.optimize as optimize
 import networkx as nx
-from multiprocessing import Pool
 from tqdm import tqdm, trange
-from sklearn.preprocessing import Normalizer
-
-import matplotlib.pyplot as plt
-from   matplotlib import cm
-from   matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 from qiskit import Aer, IBMQ
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
 from qiskit import quantum_info
-
-from qiskit.providers.ibmq      import least_busy
-from qiskit.tools.monitor       import job_monitor
-from qiskit.visualization import plot_histogram
+from config import *
 
 # Compute the value of the cost function
 def cost_function_C(x,G):
@@ -37,7 +28,11 @@ def cost_function_C(x,G):
         C = C + w*x[e1]*(1-x[e2]) + w*x[e2]*(1-x[e1])
     return C
 
-def Qiskit_QAOA(beta, gamma, V, E):
+def Qiskit_QAOA(beta, gamma, norm=False):
+    if norm == True:
+        graph = G_norm
+    else:
+        graph = G
     # preapre the quantum and classical resisters
     QAOA = QuantumCircuit(len(V), len(V))
     # apply the layer of Hadamard gates to all qubits
@@ -49,7 +44,7 @@ def Qiskit_QAOA(beta, gamma, V, E):
         for edge in E:
             k = edge[0]
             l = edge[1]
-            w = gamma[a]*G[k][l]['weight']
+            w = gamma[a]*graph[k][l]['weight']
 
             QAOA.cu1(-2*w, k, l)
             QAOA.u1(w, k)
@@ -86,9 +81,9 @@ def grid_compute(bbeta, *args, **kwargs):
     Result = []
     #compute grid for beta = [0, 0.5pi] and gamma = [-pi, pi]
     #for bbeta in tqdm(np.linspace(0, 0.5*np.pi, 100)):
-    for ggamma in np.linspace(-1.0*np.pi, 1.0*np.pi, 200):
+    for ggamma in np.linspace(0.0*np.pi, 2.0*np.pi, 400):
         init_params = [bbeta, ggamma]
-        state = Qiskit_QAOA( init_params[:p], init_params[p:], V, E)
+        state = Qiskit_QAOA( init_params[:p], init_params[p:], norm=NORM)
 
         avr_C       = 0
         for sample in list(state.keys()):
@@ -108,7 +103,7 @@ def grid_compute_highP(bbeta, *args, **kwargs):
 
     Result = []
     if p-1 == len(opbeta) and p-1 == len(opgamma):
-        for ggamma in np.linspace(-1.0*np.pi, 1.0*np.pi, 200):
+        for ggamma in np.linspace(-1.0*np.pi, 1.0*np.pi, 2000):
             init_params = list(np.concatenate(( np.append(opbeta, bbeta) , np.append(opgamma, ggamma))))
             state = Qiskit_QAOA( init_params[:p], init_params[p:], V, E)
 
@@ -128,20 +123,19 @@ def grid_compute_highP(bbeta, *args, **kwargs):
 
 
 #Create graph from adjacency matrix
-n = 6
-data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
+#data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
 #data = np.load('./uC/uC6nodes.npy', allow_pickle=True)
-dist = data[0]['dist']
+#dist = data[0]['dist']
 
-G = nx.from_numpy_matrix(dist)
-n = len(G.nodes())
-V = np.arange(0, n, 1)
-E = []
-for e in G.edges():
-    E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
+#G = nx.from_numpy_matrix(dist)
+#n = len(G.nodes())
+#V = np.arange(0, n, 1)
+#E = []
+#for e in G.edges():
+#    E.append((e[0], e[1], G[e[0]][e[1]]['weight']))
 
 #Prepare Qiskit framework
-backend     = Aer.get_backend("statevector_simulator")
+#backend     = Aer.get_backend("statevector_simulator")
 
 
-p = 5
+p = LAYER
