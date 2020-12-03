@@ -13,7 +13,7 @@ from sklearn.datasets import make_blobs
 
 n = 6
 data = np.load('./wC/'+str(n)+"nodes_10samples.npy", allow_pickle=True)
-pos = data[2]['dist']
+pos = data[3]['dist']
 #pos = np.loadtxt('1_pos_data.csv', delimiter=',')
 #plt.scatter(pos[:, 0], pos[:, 1])
 
@@ -26,7 +26,7 @@ k_means.fit(pos)
 k_means_labels          = k_means.labels_
 k_means_cluster_centers = k_means.cluster_centers_
 
-np.savetxt('4_kmean_number.csv', k_means_labels, delimiter=',', fmt='%.3f')
+#np.savetxt('4_kmean_number.csv', k_means_labels, delimiter=',', fmt='%.3f')
 
 fig     = plt.figure(figsize=(6, 4))
 colors  = plt.cm.Spectral(np.linspace(0, 1, len(set(k_means_labels))))

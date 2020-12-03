@@ -16,11 +16,16 @@ Op_fun = np.min(temp)
 Op_x = data_temp[0][Op_Idx][0].x
 #Op_x = data_temp[0][Op_Idx][1][-1]
 
+plt.scatter(range(p), Op_x[:p], label="beta")
+plt.scatter(range(p), Op_x[p:]*w_max, label="gamma")
+plt.legend()
+
 beta, gamma = Op_x[:p], Op_x[p:]
 result = Qiskit_QAOA(beta, gamma, norm=NORM)
 #result = dict(itertools.islice(result.items(), 32))
 title = "N="+str(N)+", p="+str(p)
-fig1 = plot_histogram(result, figsize = (12,8),bar_labels = True, title=title)
+
+#fig1 = plot_histogram(result, figsize = (12,8),bar_labels = True, title=title)
 plt.xlabel("Bitstring states")
 plt.xticks([])
 
@@ -35,6 +40,7 @@ for k in range(len(config.G.edges())+1):
 for sample in list(result.keys()):
     # use sampled bit string x to compute C(x)
     x         = [int(num) for num in list(sample)]
+    x         = list(np.flip(x))
     tmp_eng   = cost_function_C(x)
 
     # compute the expectation value and energy distribution
@@ -49,7 +55,7 @@ print('\n --- SIMULATION RESULTS ---\n')
 print('The sampled mean value is M1_sampled = %.02f, Op_fun = %.2f \n' % (avr_C, Op_fun))
 print('The approximate solution is x* = %s with C(x*) = %d \n' % (max_C[0],max_C[1]))
 print('The cost function is distributed as: \n')
-fig2 = plot_histogram(hist,figsize = (12,8),bar_labels = False, title=title)
+#fig2 = plot_histogram(hist,figsize = (12,8),bar_labels = False, title=title)
 
 sol6 = [-52.419, -35.872, -56.679, -51.35, -45.872, -55.649, -52.52, -57.38, -50.07, -51.043]
 sol6_10dis = [-90.277, -89.716]

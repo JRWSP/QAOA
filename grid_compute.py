@@ -89,6 +89,7 @@ def grid_compute(bbeta, *args, **kwargs):
         for sample in list(state.keys()):
             # use sampled bit string x to compute C(x)
             x         = [int(num) for num in list(sample)]
+            x         = list(np.flip(x))
             tmp_eng   = cost_function_C(x,G)
             # compute the expectation value and energy distribution
             avr_C     = avr_C    + state[sample]*tmp_eng
@@ -111,6 +112,7 @@ def grid_compute_highP(bbeta, *args, **kwargs):
             for sample in list(state.keys()):
                 # use sampled bit string x to compute C(x)
                 x         = [int(num) for num in list(sample)]
+                x         = list(np.flip(x))
                 tmp_eng   = cost_function_C(x,G)
                 # compute the expectation value and energy distribution
                 avr_C     = avr_C    + state[sample]*tmp_eng

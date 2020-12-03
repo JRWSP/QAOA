@@ -6,7 +6,7 @@ from sklearn.preprocessing import Normalizer
 def FILE_HEURISTIC(nodes, layers, smple):
     if type(nodes) == type(layers) == type(smple):
         if METH == "COBYLA":
-            filename = "./COBYLA/N"+str(nodes)+"/Heuristic_N" + str(nodes) + "_p" + str(layers) + "_sample" + str(smple) + "_COBYLA"
+            filename = "./COBYLA/N"+str(nodes)+"/Flip_Heuristic_N" + str(nodes) + "_p" + str(layers) + "_sample" + str(smple) + "_COBYLA"
         elif METH == "Powell":
             filename = "./Heuristic/N"+str(nodes)+"/Heuristic_N" + str(nodes) + "_p" + str(layers) + "_sample" + str(smple)
         if LARGE_DISTANCE == True:
@@ -49,7 +49,7 @@ def FIGNAME(nodes, smple, Strat):
     if type(nodes) == type(smple):
         #return "./fig/uC_" + str(nodes) +"_sample"+str(smple)
         if Strat == "_Heuristic":
-            filename =  "./fig/N" + str(nodes) +"_sample" + str(smple) + Strat
+            filename =  "./fig/N" + str(nodes) +"_sample" + str(smple) + Strat +"FLIP"
         elif Strat == "_RI":
             filename =  "./fig/N" + str(nodes) +"_sample" + str(smple) + Strat
         else:
@@ -82,12 +82,12 @@ def SetConstrain(layer):
     return cons
 
 N = 6
-LAYER = 10
-SMPLE = 3
+LAYER = 1
+SMPLE = 9
 LARGE_DISTANCE= False
 NORM = False
-METH = "Powell"
-#METH = "COBYLA"
+#METH = "Powell"
+METH = "COBYLA"
 STRAT = "_Heuristic"
 #STRAT = "_RI"
 
@@ -111,12 +111,14 @@ for e in G.edges():
 
 #Testing new method for renormalize matrix.
 Edge_norm = np.transpose(E_norm)
-w_min = np.min(Edge_norm[-1])
+Edge = np.transpose(E)
+w_min = np.min(Edge[-1])
+w_max = np.max(Edge[-1])
 dist_normnew = dist_norm/w_min
 G_normnew = nx.from_numpy_matrix(dist_normnew)
 
 backend     = Aer.get_backend("statevector_simulator")
-bnds = {'beta': (0*np.pi, 0.50*np.pi), 'gamma': (0*np.pi, 2.00*np.pi)}
+bnds = {'beta': (0*np.pi, 0.50*np.pi), 'gamma': (0*np.pi, 1.00*np.pi)}
 
 
 if __name__ == "__main__":

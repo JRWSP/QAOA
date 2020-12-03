@@ -27,7 +27,7 @@ if __name__ == "__main__":
     if_save = 0
 
     if p == 1:
-        beta = np.linspace(0.0*np.pi, 1.0*np.pi, 400)
+        beta = np.linspace(0.0*np.pi, 0.50*np.pi, 400)
         with Pool(n_cores) as P:
             Res = list(tqdm(P.imap(grid_compute.grid_compute, beta), total=len(beta)))
         if_save = 1

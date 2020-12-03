@@ -98,6 +98,7 @@ def optim(params):
     for sample in list(counts.keys()):
         # use sampled bit string x to compute C(x)
         x         = [int(num) for num in list(sample)]
+        x         = list(np.flip(x))
         tmp_eng   = cost_function_C(x)
         # compute the expectation value and energy distribution
         avr_C     = avr_C    + counts[sample]*tmp_eng
