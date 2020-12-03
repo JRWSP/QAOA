@@ -94,14 +94,16 @@ for p in range(1,last):
     std_heu = np.append(std_heu, std_temp/sol_min)
     Min_heu.append(np.min(temp)/sol_min)#sol10[smple])
 
+    Op_Idx = np.argmin(temp)
+    Op_fun = np.min(temp)
+
     """
     file = FILE_RI(N,p,SMPLE)
     data_temp = np.load(file+".npy", allow_pickle=True)
     #data_temp = data_temp[::2]
     temp = np.array([data_temp[0][ii][0].fun for ii in range(len(data_temp[0]))])
 
-    Op_Idx = np.argmin(temp)
-    Op_fun = np.min(temp)
+
 
     mean_temp = np.mean(temp)
     std_temp = np.std(temp)
@@ -118,7 +120,7 @@ plt.errorbar(np.arange(1, 11)+0.1, mean_heu,
              color='b',
              ecolor='b',
              markerfacecolor='None',
-             label="Heuristic")
+             label="Heuristic+COBYLA")
 plt.scatter(np.arange(1, 11)+0.1, Min_heu,
             marker='x',
             color='b')
@@ -143,8 +145,8 @@ plt.xticks(range(1,11))
 #plt.title("Heuristic, 240initials")
 plt.legend()
 plt.grid(alpha=0.5)
-#plt.savefig(FIGNAME(N, SMPLE, Strat = config.STRAT), dpi=250)
-plt.show()
+plt.savefig(FIGNAME(N, SMPLE, Strat = config.STRAT), dpi=250)
+#plt.show()
 
 
 

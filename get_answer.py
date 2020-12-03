@@ -31,11 +31,12 @@ def get_answer(*args, **kwargs):
     avr_C       = 0
     max_C       = [0,0]
     hist        = {}
-    for k in range(len(config.G.edges())+1):
-        hist[str(k)] = hist.get(str(k),0)
+#    for k in range(len(config.G.edges())+1):
+#        hist[str(k)] = hist.get(str(k),0)
     for sample in list(result.keys()):
         # use sampled bit string x to compute C(x)
         x         = [int(num) for num in list(sample)]
+        x         = list(np.flip(x))
         tmp_eng   = task.cost_function_C(x)
         # compute the expectation value and energy distribution
         avr_C     = avr_C    + result[sample]*tmp_eng
@@ -58,5 +59,5 @@ def get_answer(*args, **kwargs):
 if __name__ == "__main__":
     sol = []
     get_answer()
-        #plt.show()
+    plt.show()
     print(sol)
